@@ -1,0 +1,1791 @@
+<apex:page controller="GLBL_DataHandler" showHeader="false" standardStylesheets="false">
+    <apex:stylesheet value="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"/>
+    <script type="text/javascript" src="https://code.highcharts.com/highcharts.js"></script>
+
+
+    <style type="text/css">
+        body, div, ul, li, ol, table, tr, td, h1, h2, h3{
+            font-family: Arial,sans-serif;
+            padding: 0;
+            margin: 0;
+            padding: 0;
+            border: 0;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+        body{
+            background: #efefef;
+        }
+        h1{
+            font-size: 2.5em;
+        }
+        .js-dh{
+            color: #333;
+            font-size: 1.5em;
+        }
+        .dh-shady{
+            box-shadow: 0 0 0 1px rgba(0,0,0,.1), 0 2px 3px rgba(0,0,0,.2);
+        }
+        .dh-side{
+            float: left;
+        }
+        .dh-side-ele{
+            position: fixed;
+            background-color: #333;
+            color: #fff;
+            width: 60px;
+            height: 100%;
+        }
+        .dh-main{
+            padding-left:60px; 
+        }
+
+        .dh-objects{
+            padding: 20px;
+        }
+        .dh__spinner {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 1000;
+        }
+        .dh-spinner__per{
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 100%;
+            text-align: center;
+        }
+        .dh-spinner__ele{
+            border: 3px solid #ccc;
+            border-right: 3px solid #333;
+            animation-name: dh-spin;
+            animation-duration: 0.6s;
+            animation-iteration-count: infinite;
+            -webkit-animation-fill-mode: forwards;
+            animation-fill-mode: forwards;
+            animation-timing-function: linear;
+        }
+        .dh-obj-list__title{
+            font-size: 2em;
+            cursor: pointer;
+        }
+
+        .dh-table{
+            border:1px solid #ccc;
+            margin-bottom: 20px;
+            width: 100%;
+        }
+        .dh-table td, .dh-table th{
+            padding: 5px;
+            border: 0;
+            text-align: left;
+        }
+        .dh-table tr:nth-child(even) {
+            background-color: #eee;
+            color: #000;
+        }
+        .dh-list-main{
+            position: relative;
+            padding: 6px 10px;
+            border-bottom: 1px solid #ccc;
+            background: #fff;
+        }
+        .dh-list-main .js-dh-list-item__spinner{
+            position: absolute;
+            right: 20px;
+            top: 10px;
+        }
+        .dh-list{
+            display: flex;
+            /*margin-bottom: 10px;*/
+            color: #3572b0;
+        }
+        .dh-list-item{
+            /*width: 25%;*/
+        }
+        .inputfile{
+            width: 0.1px;
+            height: 0.1px;
+            opacity: 0;
+            overflow: hidden;
+            position: absolute;
+            z-index: -1;
+        }
+
+        .dh-list-item__inputfile__label {
+            font-size: 0.7em;
+            color: white;
+            background-color: #34495E;
+            padding: 4px;
+            display: inline-block;
+            cursor: pointer;
+        }
+        .dh-list-item__title{
+            width: 300px;
+            overflow: hidden;
+            margin-left: 25px;
+        }
+
+        .dh-list-item__inputfile__label:focus,
+        .dh-list-item__inputfile__label:hover {
+            background-color: #5D6D7E;
+        }
+        .dh-filter{
+            width: 100%;
+            padding: 15px;
+            border: 0;
+            background: #fff;
+        }
+        .dh-filters{
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        .dh-filters__flex-item{
+            margin-right: 20px;
+        }
+        .dh-filters__filter{
+            background: #eee;
+            border: 1px solid #ccc;
+            text-align: center;
+            padding: 6px;
+        }
+        .dh-filters__search__input{
+            padding: 7px;
+            min-width: 200px;
+        }
+        .dh-filters__filter:hover{
+            background-color: #ddd; 
+        }
+
+        .dh-cus-input {
+            width: 0.1px;
+            height: 0.1px;
+            position: relative;
+        }
+        
+        .dh-cus-input:checked::after {
+            content: "\f00c";
+        }
+        .dh-cus-input::after {
+            position: absolute;
+            top: 0;
+            left: 0;
+            border: 1px solid #666;
+            border-radius: 4px;
+            text-align: center;
+            font-family: "FontAwesome";
+            display: block;
+            content: "";
+            background: #eee;
+            width: 20px;
+            height: 20px;
+            line-height: 20px;
+            margin-top: -5px;
+            margin-left: -5px;
+            cursor:pointer;
+        }
+        .dh-cus-input:hover::after{
+            background-color: #ccc;
+        }
+        .dh-list-item__spinner{
+            width:20px;
+            height: 20px;
+        }
+        .dh-control{
+            padding: 10px 20px;
+        }
+        .dh-control-main{
+            display: flex;
+            align-items: center;
+        }
+        .dh-gap-small{
+            margin-right: 5px;
+        }
+        .dh-btn{
+            border: 1px solid #ccc;
+            display: inline-block;
+            min-width: 80px;
+            padding: 7px;
+            text-align: center;
+            border-radius: 4px;
+            cursor: pointer;
+            background-color: #34495E;
+            color: #fff;
+        }
+        .dh-btn.dh-btn--normal{
+            background: #34495E;
+            color: #fff;
+        }
+        .dh-btn.dh-btn--alert{
+            background-color: red;
+            color: #fff;
+        }
+        .dh-btn:hover{
+            background-color: #ccc;
+            color: #333;
+        }
+        .dh-prompt{
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.4);
+            border-radius: 0;
+            display: none;
+            z-index: 1000;
+        }
+        .dh-prompt-center{
+            position: absolute;
+            width: 40%;
+            height: 300px;
+            top:50%;
+            left: 50%;
+            transform: translateY(-50%) translateX(-50%);
+            background: #fff;
+        }
+        .dh-prompt-center__text{
+            text-align: center;
+            padding-top: 17%;
+            font-size: 1.4em;
+            font-weight: bold;
+        }
+        .dh-prompt-center__btns{
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .dh-field-item{
+            display: flex;
+            padding: 10px;
+            border-bottom: 1px solid #ccc;
+            color: #555;
+        }
+        .dh-field-item__name{
+            min-width: 400px;
+        }
+        .dh-ajax-filter{
+            position: relative;
+        }
+        .dh-ajax-filter-search-items{
+            position: absolute;
+            width: 100%;
+            background: #fefefe;
+            border: 1px solid #ccc;
+            z-index: 200;
+        }
+        .dh-side-menu-item{
+            position: relative;
+            width: 40px;
+            height: 40px;
+            background: transparent;
+            margin:10px auto;
+            cursor: pointer;
+            background: transparent;
+        }
+        .dh-side-menu-item::after {
+            position: absolute;
+            font-family: "FontAwesome";
+            font-size: 1.5em;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            top: 50%;
+            line-height: 40px;
+            transform: translateY(-50%);
+        }
+        .dh-side-menu-item--write-data::after { content: "\f1c0"; }
+        .dh-side-menu-item--report::after { content: "\f080"; }
+        .dh-side-menu-item--question::after { content: "\f059"; }
+        .dh-side-menu-item--overview::after { content: "\f03a"; }
+        .dh-side-menu-item--wiki::after { content: "\f266"; }
+                
+        .dh-side-menu-item:hover{
+            background: #09c;
+        }
+        .dh-report{
+            display: flex;
+        }
+        .dh-report-chart-container{
+            
+        }
+        .highcharts-credits{
+            display: none;
+        }
+        .dh-list-item__referenced{
+            width: 20px;
+            height: 20px;
+            margin-left: 25px;
+            position: relative;
+        }
+        .dh-list-item__referenced::after {
+            position: absolute;
+            font-family: "FontAwesome";
+            font-size: 1.5em;
+            width: 20px;
+            height: 20px;
+            color: #f5f5f5;
+            text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;
+            content: "\f005";
+        }
+        .dh-list-item__referenced--selected::after {
+            color: #fc0;
+        }
+        @keyframes dh-spin{
+            from {
+                transform: rotate(0deg);
+            }
+            to{
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+    <div class="js-dh">
+        <div class="dh-side">
+            <div class="dh-side-ele js-dh-side-menu-parent"></div>
+        </div>
+        <div class="dh-main">
+            <div class="dh-report" id="dh-report">
+                <div class="dh-report-chart-container" >
+                    <div id="dh-report-1"></div>
+                </div>
+                <div class="dh-report-chart-container">
+                    <div id="dh-report-2"></div>
+                </div>
+            </div>
+            <div class="dh-objects js-dh-filter"></div>
+            <div class="dh-control js-dh-control"></div>
+            <div class="dh-objects js-dh-objects"></div>
+        </div>
+        <div class="dh-prompt js-dh-prompt"></div>
+    </div>
+    <script>
+        var mgr = Visualforce.remoting.Manager;
+        var actionRef ={
+            getAllObjects: '{!$RemoteAction.GLBL_DataHandler.getAllObjects}',
+            genRecords: '{!$RemoteAction.GLBL_DataHandler.genRecords}',
+            query: '{!$RemoteAction.GLBL_DataHandler.query}'
+        };
+    </script>
+    <script>
+       setTimeout(function() {
+         var chart = Highcharts.chart('dh-report-2', {
+            chart: {
+                plotBackgroundColor: null,
+                plotBorderWidth: null,
+                plotShadow: false,
+                type: 'pie',
+                spacingLeft: 10,
+            },
+            
+            tooltip: {
+                pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+            },
+            title: null,
+            plotOptions: {
+                pie: {
+                    allowPointSelect: true,
+                    cursor: 'pointer',
+                    dataLabels: {
+                        enabled: true,
+                        format: '<b>{point.name}</b>: {point.percentage:.1f} %',
+                        style: {
+                            color: (Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black'
+                        }
+                    }
+                }
+            },
+            series: [{
+                name: 'Brands',
+                colorByPoint: true,
+                data: [{
+                    name: 'Microsoft Internet Explorer',
+                    y: 56.33
+                }, {
+                    name: 'Chrome',
+                    y: 24.03,
+                    sliced: true,
+                    selected: true
+                }, {
+                    name: 'Firefox',
+                    y: 10.38
+                }, {
+                    name: 'Safari',
+                    y: 4.77
+                }, {
+                    name: 'Opera',
+                    y: 0.91
+                }, {
+                    name: 'Proprietary or Undetectable',
+                    y: 0.2
+                }]
+            }]
+        });
+            
+       }, 3000);
+
+       setTimeout(function() {
+         var chart = Highcharts.chart('dh-report-1', {
+            chart: {
+                plotBackgroundColor: null,
+                plotBorderWidth: null,
+                plotShadow: false,
+                type: 'pie',
+                spacingLeft: 10,
+            },
+            
+            tooltip: {
+                pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+            },
+            title: null,
+            plotOptions: {
+                pie: {
+                    allowPointSelect: true,
+                    cursor: 'pointer',
+                    dataLabels: {
+                        enabled: true,
+                        format: '<b>{point.name}</b>: {point.percentage:.1f} %',
+                        style: {
+                            color: (Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black'
+                        }
+                    }
+                }
+            },
+            series: [{
+                name: 'Brands',
+                colorByPoint: true,
+                data: [{
+                    name: 'Microsoft Internet Explorer',
+                    y: 0.2
+                }, {
+                    name: 'Chrome',
+                    y: 24.03,
+                    sliced: true,
+                    selected: true
+                }, {
+                    name: 'Firefox',
+                    y: 10.38
+                }, {
+                    name: 'Safari',
+                    y: 56.33,
+                }, {
+                    name: 'Opera',
+                    y: 4.77
+                }, {
+                    name: 'Proprietary or Undetectable',
+                    y: 0.91
+                }]
+            }]
+        });
+            
+       }, 3000);
+
+        var count = 0;
+        var isStart = false;
+        var progressEle = document.querySelector('.re-progress');
+        var launchBtn = document.querySelector('.re-button-luanch');
+
+        // compoennts
+        var spinner;
+        var filter;
+        var sideMenu;
+        var objectList;
+        var control;
+        var objListStore;
+
+        function enterpriseEngage() {
+            filter = Filter();
+            control = Control();
+            spinner = Spinner();
+            prompt = Prompt();
+            sideMenu = SideMenu();
+            objListStore = ObjListStore();
+            getAllVersioin();
+        }
+
+        function getAllVersioin() {
+            setTimeout(function() {
+                mgr.invokeAction(
+                    actionRef.getAllObjects,
+                    handleFullResult
+                );
+            }); 
+        }
+
+        function genRecords(objDetails) {
+            setTimeout(function() {
+                mgr.invokeAction(
+                    actionRef.genRecords,
+                    objDetails,
+                    handlerResponseFromGenRecords
+                );
+            });
+        }
+
+        function handleFullResult(a) {
+            console.log(a);
+            objListStore.setData(a);
+            control.setData(objListStore);
+            genObjectList(objListStore);
+
+            spinner.hide();
+        }
+
+        function genObjectList(store) {
+            objectsList = ObjectsList();
+            objectsList.setStore(store);
+            onObjectList();
+        }
+
+        function onObjectList() {
+            filter.plug('keyupsearch', objectsList.filter, objectsList);
+            filter.plug('filterclickselected', objectsList.filterBySelected, objectsList);
+            filter.plug('filterclickall', objectsList.showAll, objectsList);
+            filter.plug('filterclickunselected', objectsList.filterBySelected, objectsList);
+            objectsList.plug('oncheckselect', objListStore.onCheckSelect, objListStore);
+            objectsList.plug('onchangetotal', objListStore.onChangeTotal, objListStore);
+            objectsList.plug('objectlist.check.notifymaster', objListStore.onNotifyMasterByCheck, objListStore);
+
+            control.plug('onclickgenbtn', prompt.showByType, prompt);
+            prompt.plug('control.genrecord.btn.onclickconfirmcancle', objListStore.genRecords, objListStore);
+        }
+
+        var __ = {
+            makeEle: function(type, cls) {
+                if(type === 'fragment') return document.createDocumentFragment();
+                var ele = document.createElement(type);
+                if(cls) ele.className = cls;
+                return ele;
+            },
+            addCls: function(ele, cls) {
+                ele.className = ele.className.trim() ? (ele.className + ' ' + cls) : cls;
+                return ele;
+            },
+            removeCls: function(ele, cls) {
+                var names = ele.className.split(/\s+/g), r = [];
+                cls = cls.trim();
+
+                for(var i = 0, ln = names.length; i < ln; i += 1) {
+                    if(names[i] === cls) continue;
+                    r.push(names[i]);
+                }
+                ele.className = r.join(' ');
+            },
+            LocalStorageHandler: {
+                store: function(key, data) { localStorage.setItem(key, data); },
+                fetch: function(key) { return localStorage.getItem(key); },
+                remove: function(key) { localStorage.removeItem(key); }
+            },
+            extend: function(parent, child) {
+                for(var i in parent) {
+                    child[i] = parent[i];
+                }
+                return child;
+            },
+            isMasterDetail: function(fieldData) {
+                var except = ['lastmodifiedbyid', 'createdbyid', 'ownerid'];
+                return fieldData.fieldValueType === 'REFERENCE' && 
+                        fieldData.isNillable === false &&
+                        except.indexOf(fieldData.name.toLowerCase()) === -1;
+            }
+        }
+
+        function ObjListStore() {
+            var o = {
+                selected: [],
+                onCheckSelect: function(isSelected, objData) {
+                    this.updateParent(isSelected, objData);
+                    this.updateSelected(isSelected, objData);
+                },
+                onChangeTotal: function(total, objData) {
+                    this.updateTotal(total, objData);
+                },
+                onNotifyMasterByCheck: function(isChecked, data, masters) {
+                    if(!masters || !masters.length) return;
+                    var r, t, i = 0;
+                    for(; r = this.records[i]; i += 1) {
+                        if(masters.indexOf(r.getData().name) > -1) {
+                            t = r.getData().referencedTotal;
+                            if(isChecked) {
+                                r.setReferenceTotal(t + 1);
+                            } else if(t > 0) {
+                                r.setReferenceTotal(t - 1);    
+                            }
+                        }
+                    }
+                },
+                updateTotal: function(total, objData) {
+                    for(var i = 0, ln = this.selected.length; i < ln; i += 1) {
+                        if(this.selected[i].name === objData.name) {
+                            this.selected[i].total = Number(total); break;
+                        }
+                    }
+                },
+                updateParent: function(isSelected, objData) {
+                    var parent, f;
+                    var parentRecord;
+
+                    for(var i  = 0; i < objData.fieldDetails.length; i++) {
+                        f = objData.fieldDetails[i];
+                        parent = f.referenceTo;
+                        if(parent && __.isMasterDetail(f)) {
+                            parentRecord = this.getBy('name', parent);
+                            if(parentRecord) {
+                                parentRecord.setIsRequired(isSelected);
+                            }
+                        }
+                    }
+                },
+                getBy: function(property, value) {
+                    var r, i = 0, ln = this.records.length;
+                    property = property.toLowerCase();
+                    value = value.toLowerCase();
+
+                    for( ; i < ln; i++) {
+                        r = this.records[i];
+                        if(r.get(property) === value) {
+                            return r;
+                        }
+                    }
+                    return null;
+                },
+                isAlreadySelected: function(objData) {
+                    for(var i = 0, ln = this.selected.length; i < ln; i += 1) {
+                        if(objData.name === this.selected[i].name) return true;
+                    }
+                    return false;
+                },
+                updateSelected: function(isSelected, objData) {
+                    objData.isRequired = isSelected;
+                    this.selected = [];
+                    for(var i = 0; i < this.getSize(); i ++) {
+                        if(this.records[i].get('isRequired')) {
+                            this.selected.push(this.records[i].getData());
+                        }
+                    }
+                },
+
+                // api request
+                genRecords: function(objDetails) {
+                    var me = this;
+                    
+                    mgr.invokeAction(
+                        actionRef.genRecords,
+                        me.selected,
+                        me.handlerResponseFromGenRecords
+                    );
+                },
+                handlerResponseFromGenRecords: function(res) {
+                    console.log(res);
+                },
+                findParentObj: function() {}
+            };
+            __.extend(Store(), o);
+
+            // override
+            o.createRecords = function(data) {
+                var r;
+                for(var i = 0; i < data.length;i++) {
+                    r = ObjListRecord();
+                    r.setData(data[i]);
+                    this.records.push(r);
+                }
+            }
+            o.init();
+            return o;
+        }
+
+        function ObjListRecord() {
+            var o = {};
+            __.extend(Record(), o);     
+
+            o.overrideFn = function() {};  
+            o.setIsRequired = function(flag) {
+                this.data.isRequired = flag;
+                this.updateIsRequired(flag);
+            };
+            o.updateIsRequired = function(v) {
+                this.updateBindedView();
+            };
+            o.setReferenceTotal = function(t) {
+                this.data.referencedTotal = t;
+                this.updateTotal(t);
+            };
+            o.setRequiredTotal = function(t) {
+                this.data.requiredTotal = t;
+                this.updateTotal(t);
+            };
+            o.updateTotal = function(t) {
+                var rt = this.data.referencedTotal;
+                var rqt = this.data.requiredTotal;
+                if(rt > rqt) this.data.total = rt;
+                else if(rt <= rqt) this.data.total = rqt;
+            };
+            o.init();
+            return o;
+        }
+
+        function Record() {
+            var o = {
+                data: null,
+                bindedView: [],
+                setData: function(data) {
+                    this.data = data;
+                    this.updateData(data);
+                },
+                getData: function() {
+                    return this.data;
+                },
+                set: function(property, value) {
+                    this.data[property] = value;
+                    this.onSet();
+                },       
+                onSet: function() {
+                    this.updateData();
+                },         
+                get: function(fieldName) {
+                    return this.data[fieldName];
+                },
+                bindView: function(view) {
+                    this.bindedView.push(view);
+                },
+                init: function() {},
+                updateData: function(newData) {
+                    this.updateBindedView(newData);
+                },
+                updateBindedView: function(data) {
+                    data = data || this.data;
+                    if(this.bindedView.length) {
+                        for(var i = 0 ; i < this.bindedView.length; i++) {
+                            this.bindedView[i].setData(this.data);
+                        }
+                    }
+                }
+            };
+            return o;
+        }
+
+        /**
+         * @factory Store
+         * store contains a collection of records
+         * store also provide APIs(power) to better managing raw data
+         */
+        function Store() {
+            var o = {
+                name: '',
+                data: null,
+                records: [],
+                filtered: [],
+                bindedView: null,
+                filters: [],
+                init: function() {},
+                sortBy: function(sorters) {},
+                filterBy: function(property, values) {
+                    if (!values.length) throw 'Store: filterby: missing values';
+                    this.filtered = [];
+                    var ds = this.data;
+                    for(var i = 0, ln = ds.length; i < ln; i++) {
+                        if(values.indexOf(ds[i][property]) > -1) 
+                            this.filtered.push(ds[i]);
+                    }
+                    return this.filtered;
+                },
+                groupBy: function(property, value) {},
+                findBy: function(property, value) {
+                    var ds = this.data;
+                    for(var i = 0, ln = ds.length; i < ln; i++) {
+                        if(ds[i][property] === value) return ds[i];
+                    }
+                    return null;
+                },
+                getData: function() {
+                    return data;
+                },
+                setData: function(data) {
+                    this.data = data;
+                    this.updateData(data);
+                },
+                updateData: function(newData) {
+                    this.createRecords(newData);
+                    this.filterRecords(this.filters);
+                    this.sortRecords(this.sorters);
+                },
+                filterRecords: function(filters) {
+                    console.log('do filters here..');
+                },
+                sortRecords: function(sorters) {
+                    console.log('do sorting here...');
+                },
+                createRecords: function(data) {
+                    var r;
+                    for(var i = 0; i < data.length;i++) {
+                        r = Record(data[i]);
+                        this.records.push(r);
+                    }
+                },
+                getSize: function() {
+                    return this.records.length;
+                },
+                getRecords: function() {
+                    return this.records;
+                }
+            };
+        
+            o.init();
+            return o;
+        }
+
+        /**
+         * @factory brain
+         */
+        function Brain() {
+            return {
+                evtRegister:{},
+                triggerEvent: function (topic, args) {
+                    if (!this.evtRegister[topic]) return;
+                    for (var i = 0, el; el = this.evtRegister[topic][i] ;i++) el.fn.apply(el.scope, args || []);
+                },
+                plug:  function (topic, callback, scope) {
+                    if (!this.evtRegister[topic]) this.evtRegister[topic] = [];
+                    this.evtRegister[topic].push({ fn: callback, scope: scope || callback });
+                    return [topic, callback, scope];
+                },
+                unplug: function (handle) {
+                    var i = 0, el, topic = handle[0];
+                    if (!this.evtRegister[topic]) return;
+                    for (; el = this.evtRegister[topic][i]; i++) if (el.fn == handle[1]) this.evtRegister[topic].splice(i, 1);
+                }
+            };
+        }
+
+        /**
+         * side Menu
+         * @param {}
+         */
+        function SideMenu() {
+            var o = {
+                baseCls: 'dh-side-menu',
+                parent: '',
+                ele: null,
+                template: [
+                    '<div class="dh-side-menu-item dh-side-menu-item--write-data"></div>',
+                    '<div class="dh-side-menu-item dh-side-menu-item--report"></div>',
+                    '<div class="dh-side-menu-item dh-side-menu-item--overview"></div>',
+                    '<div class="dh-side-menu-item dh-side-menu-item--wiki"></div>',
+                    '<div class="dh-side-menu-item dh-side-menu-item--question"></div>',
+                ].join(''),
+                data: null,
+                init: function() {
+                    this.initEle();
+                    this.initEvent();
+                },
+                initEle: function() {
+                    this.parent = document.querySelector('.js-dh-side-menu-parent');
+                    this.ele = __.makeEle('div', this.baseCls);
+                    this.parent.appendChild(this.ele);
+                    this.ele.innerHTML = this.template;
+                },
+                initEvent: function() {},
+                setData: function(data) {
+                    this.data = data;
+                    this.updateData(data);
+                },
+                updateData: function(newData) {
+                    this.refresh();
+                },
+                refresh: function() {}
+            };
+        
+            o.init();
+            return o;
+        }
+
+        /**
+         * @factory Prompt
+         */
+        function Prompt() {
+            var o = {
+                parent: null,
+                baseCls: 'dh-prompt',
+                topic: '',
+                whoTriggeredIt: null,
+                supportedTypes: [
+                    'welcome',
+                    'error',
+                    'warning',
+                    'success',
+                    'confirm'
+                ],
+                type: null,
+                typeTemplates: {
+                    welcome: [].join(''),
+                    error: [
+                        '<div class="dh-prompt-center">',
+                            '<div class="dh-prompt-center__text">Ooops, something is not right, find Xin.</div>',
+                            '<div class="dh-prompt-center__btns">',
+                                '<a class="dh-btn">OK</a>',
+                            '</div>',
+                        '</div>'
+                    ].join(''),
+                    warning: [
+                        '<div class="dh-prompt-center">',
+                            '<div class="dh-prompt-center__text">This may not be a good idea.</div>',
+                            '<div class="dh-prompt-center__btns">',
+                                '<a class="dh-btn">OK</a>',
+                            '</div>',
+                        '</div>'
+                    ].join(''),
+                    success: [
+                        '<div class="dh-prompt-center">',
+                            '<div class="dh-prompt-center__text">Everything is coolly done!</div>',
+                            '<div class="dh-prompt-center__btns">',
+                                '<a class="dh-btn">OK</a>',
+                            '</div>',
+                        '</div>'
+                    ].join(''),
+                    confirm: [
+                        '<div class="dh-prompt-center">',
+                            '<div class="dh-prompt-center__text">Are you sure you want to go ahead?</div>',
+                            '<div class="dh-prompt-center__btns">',
+                                '<a class="dh-btn js-dh-prompt__confirm__btn--yes">Yes<a>',
+                                '<a class="dh-btn js-dh-prompt__confirm__btn--cancle">Cancle</a>',
+                            '</div>',
+                        '</div>'
+                    ].join('')
+                },
+                ele: null,
+
+                btnEles: null,
+                initBtns: function() {
+                    var me = this;
+                    this.btnEles = {
+                        confirm:{
+                            yes:{id: 'js-dh-prompt__confirm__btn--yes', ele: null, fn: me.onClickConfirmYes },
+                            cancle: {id: 'js-dh-prompt__confirm__btn--cancle', ele: null, fn: me.onClickConfirmCancle}
+                        }
+                    };
+                },
+                templates: [
+                    '<div class="'+ this.baseCls +'">',
+                    '</div>',
+                ].join(''),
+                data: null,
+                init: function() {
+                    this.initEle();
+                    this.initEvent();
+                },
+                initEle: function() {
+                    this.parent = document.querySelector('.js-dh-prompt');
+                    this.ele = __.makeEle('div', '.js-dh-prompt-main');
+                    this.parent.appendChild(this.ele);
+                    this.initBtns();
+                },
+                initEvent: function() {
+                    this.refreshEvents();
+                },
+                refreshEvents: function() {
+                    var me = this, g
+                    for(var i in this.btnEles) {
+                        g = this.btnEles[i];
+                        for(var j in g) {
+                            if(g[j].ele) {
+                                (function(ele, fn) {
+                                    ele.addEventListener('click', fn.bind(me));
+                                })(g[j].ele, g[j].fn);
+                            }
+                        }
+                    }
+                },
+                onClickConfirmYes: function() {
+                    this.triggerEvent(this.whoTriggeredIt + '.onclickconfirmcancle');
+                    this.hide();
+                },
+
+                onClickConfirmCancle: function() {
+                    this.hide();
+                },
+                setType: function(type) {
+                    this.type = type;
+                    this.updateType(type);
+                },
+                updateType: function(newType) {
+                    if(this.isValidType(newType)) {
+                        this.refresh();
+                        this.show();
+                    }
+                },
+                showByType: function(type, who) {
+                    if(this.isValidType(type)) {
+                        this.setType(type);
+                        this.whoTriggeredIt = who;
+                    }
+                },
+                isValidType: function(type) {
+                    return this.supportedTypes.indexOf(type) > -1;
+                },
+                show: function() {
+                    this.parent.style.display = 'block';
+                },
+                hide: function() {
+                    this.parent.style.display = 'none';
+                },
+                setData: function(data) {
+                    this.data = data;
+                    this.updateData(data);
+                },
+                updateData: function(newData) {
+                    this.refresh();
+                },
+                refresh: function() {
+                    this.ele.innerHTML = this.typeTemplates[this.type];
+                    this.refreshBtns();
+                    this.refreshEvents();
+                },
+                refreshBtns: function() {
+                    var g;
+                    for(var i in this.btnEles) {
+                        g = this.btnEles[i];
+                        if(i !== this.type) {
+                            for(var j in g) {
+                                g[j].ele = null;
+                            }
+                        } else {
+                            for(var j in g) {
+                                g[j].ele = this.ele.querySelector('.' + g[j].id);
+                            }
+                        }
+                    }
+                }
+            };
+            __.extend(Brain(), o);
+            o.init();
+            return o;
+        }
+
+        /**
+         * @factory Control
+         */
+        function Control() {
+            var o = {
+                parent: null,
+                baseCls: 'dh-control',
+                ele: null,
+                genBtnEle: null,
+                unSelectAllBtnEle: null,
+                clearBtnEle: null,
+                totalEle: null,
+                template: [
+                        '<a class="dh-gap-small dh-btn dh-btn--normal js-dh-contrl__gen-btn">Generate Records</a>',
+                        '<a class="dh-gap-small dh-btn dh-btn--normal js-dh-contrl__unselect-btn">unSelectAll</a>',
+                        '<a class="dh-gap-small dh-btn dh-btn--alert js-dh-contrl__clear-btn">Clear Records</a>',
+                        '<div class="dh-gap-small js-dh-control__total"></div>'
+                ].join(''),
+                data: null,
+                init: function() {
+                    this.initEle();
+                    this.initEvent();
+                },
+                initEle: function() {
+                    this.parent = document.querySelector('.js-dh-control');
+                    this.ele = __.makeEle('div', this.baseCls + '-main');
+                    this.ele.innerHTML= this.template;
+                    this.parent.appendChild(this.ele);
+                    this.genBtnEle = this.ele.querySelector('.js-dh-contrl__gen-btn');
+                    this.unSelectAllBtnEle = this.ele.querySelector('.js-dh-contrl__unselect-btn');
+                    this.clearBtnEle = this.ele.querySelector('.js-dh-contrl__clear-btn');
+                    this.totalEle = this.ele.querySelector('.js-dh-control__total');
+                },
+                initEvent: function() {
+                    var me = this;
+                    this.genBtnEle.addEventListener('click', this.onClickGenBtn.bind(me));
+                },
+                onClickGenBtn: function() {
+                    this.triggerEvent('onclickgenbtn', ['confirm', 'control.genrecord.btn']);
+                },
+                setData: function(data) {
+                    this.data = data;
+                    this.updateData(data);
+                },
+                updateData: function(newData) {
+                    this.refresh();
+                },
+                refresh: function() {
+                    this.totalEle.innerText = 'Total: ' + this.data.getSize();
+                }
+            };
+            __.extend(Brain(), o);
+            o.init();
+            return o;
+        }
+
+        /**
+         * @factory Table
+         */
+        function Table(config) {
+            config = config || {};
+            var o = {
+                map: {
+                    'Object name': 'objName',
+                    'Object Type': 'objectType', 
+                    'Field Label': 'label', 
+                    'Field Type': 'fieldType', 
+                    'API Name': 'name', 
+                    'Field Value Type': 'fieldValueType', 
+                    'source': 'source',
+                    'Help Text': 'helpText',
+                    'IsIndexed': 'isIndexed',
+                    'isNillalbe': 'isNillable'
+                },
+                parent: document.querySelector('.dh-main'),
+                ele: null,
+                tableEle: null,
+                data: null,
+                name: config.name,
+                init: function() {
+                    this.initEle();
+                    this.initEvent();
+                },
+                initEle: function() {
+                    this.ele = __.makeEle('div', 'js-dh-table');
+                    this.tableEle = __.makeEle('table', 'dh-table');
+                    this.ele.appendChild(this.tableEle);
+                    this.parent.appendChild(this.ele);
+                },
+                initEvent: function() {},
+                setData: function(data) {
+                    this.data = data;
+                    this.updateData(data);
+                },
+                updateData: function(newData) {
+                    this.refresh(newData);
+                },
+                refresh: function(data) {
+                    var f = document.createDocumentFragment();
+                    var tr, td;
+
+                    this.genHeaders();
+                    for(var i = 0; i < data.length; i++) {
+                        tr = __.makeEle('tr');
+                        data[i].objName = this.name;
+                        for(var j in this.map) {
+                            td = __.makeEle('td');
+                            td.innerHTML = data[i][this.map[j]];
+                            tr.appendChild(td);
+                        }
+                        f.appendChild(tr);
+                    }
+                    this.tableEle.appendChild(f);
+                },
+                genHeaders: function() {
+                    var tr = __.makeEle('tr'), th;
+                    for(var i in this.map) {
+                        th = __.makeEle('th');
+                        th.innerText = i;
+                        tr.appendChild(th);
+                    }
+                    this.tableEle.appendChild(tr);
+                }
+            };
+        
+            o.init();
+            return o;
+        }
+
+        /**
+         * @factory Spinner
+         */
+        function Spinner() {
+            var o = {
+                ele: null,
+                perEle: null,
+                spinnerSpeed: 15,
+                hasNumberGrower: true,
+                dimension: 80,
+                spinnerEle: null,
+                template: [
+                    '<div class="dh-spinner__per js-dh-spinner__per"></div>',
+                    '<div class="dh-spinner__ele js-dh-spinner__ele"></div>'
+                ].join(''),
+                data: null,
+                init: function() {
+                    this.initEle();
+                    this.initEvent();
+                    this.refresh();
+                    this.show();
+                },
+                initEle: function() {
+                    this.ele = __.makeEle('div', 'dh__spinner js-dh__spinner');
+                    this.ele.innerHTML = this.template;
+                    this.perEle = this.ele.querySelector('.js-dh-spinner__per');
+                    this.spinnerEle = this.ele.querySelector('.js-dh-spinner__ele');
+                    document.body.appendChild(this.ele);
+                },
+                show: function() {
+                    this.ele.style.display = 'block';
+                    if(this.hasNumberGrower){
+                        this.numberGrower();
+                    }
+                },
+                setHasNumberGrower: function(v) {
+                    this.hasNumberGrower = v;
+                    this.udpateHasNumberGrower(v);
+                },
+                udpateHasNumberGrower: function(v) {
+                    this.perEle.style.display = v ? 'block' : 'none';
+                },
+                setDimension: function(dimension) {
+                    this.dimension = dimension;
+                    this.updateDimension(dimension);
+                },
+                updateDimension: function(newDimension) {
+                    this.refresh();
+                },
+                refresh: function() {
+                    this.spinnerEle.style.width = this.dimension + 'px';
+                    this.spinnerEle.style.height = this.dimension + 'px';
+                    this.spinnerEle.style['border-radius'] = (this.dimension / 2) + 'px';
+                },
+                hide: function() {
+                    this.ele.style.display = 'none';
+                },
+                initEvent: function() {},
+                setData: function(data) {
+                    this.data = data;
+                    this.updateData(data);
+                },
+                updateData: function(newData) {
+                    this.refresh();
+                },
+                numberGrower: function() {
+                    var me = this;
+                    var c = 0;
+                    var grower = function() {
+                        if(++c > 100) return;
+                        me.perEle.innerText = c + '%';
+                        setTimeout(grower, me.spinnerSpeed);
+                    };
+                    grower();
+                }
+            };
+        
+            o.init();
+            return o;
+        }
+
+        /**
+         * filter component
+         */
+        function Filter() {
+            var o = {
+                parent: null,
+                ele: null,
+                searchEle: null,
+                allEle: null,
+                selectedEle: null,
+                unSelectedEle: null,
+                template: [
+                    '<div class="dh-filters">',
+                        '<div class="dh-filters__flex-item">Filters</div>',
+                        '<div class="dh-filters__flex-item dh-filters__filter js-dh-filters__all">All</div>',
+                        '<div class="dh-filters__flex-item dh-filters__filter js-dh-filters__selected">Selected</div>',
+                        '<div class="dh-filters__flex-item dh-filters__filter js-dh-filters__unselected">Unselected</div>',
+                        '<div class="dh-filters__flex-item dh-filters__search">',
+                            '<input class="dh-filters__search__input js-dh-filters__search__input"  placeholder="Search"/>',
+                        '</div>',
+                    '</div>'
+                ].join(''),
+                data: null,
+                init: function() {
+                    this.initEle();
+                    this.initEvent();
+                },
+                initEle: function() {
+                    var e = this.ele;
+                    this.parent = document.querySelector('.js-dh-filter');
+                    e = __.makeEle('div', 'dh-filter dh-shady js-dh-filter-wrap');
+                    e.innerHTML = this.template;
+
+                    this.searchEle = e.querySelector('.js-dh-filters__search__input');
+                    this.selectedEle = e.querySelector('.js-dh-filters__selected');
+                    this.allEle = e.querySelector('.js-dh-filters__all');
+                    this.unSelectedEle =e.querySelector('.js-dh-filters__unselected');
+
+                    this.parent.appendChild(e);
+                },
+                initEvent: function() {
+                    var me = this;
+                    this.searchEle.addEventListener('keyup', function() { 
+                        me.triggerEvent('keyupsearch', [me.searchEle.value]);
+                    });
+                    this.selectedEle.addEventListener('click', function() {
+                        me.triggerEvent('filterclickselected', [true]);
+                    });
+                    this.unSelectedEle.addEventListener('click', function() {
+                        me.triggerEvent('filterclickunselected', [false]);
+                    });
+                    this.allEle.addEventListener('click', function() {
+                        me.triggerEvent('filterclickall', []);
+                    });
+                },
+                setData: function(data) {
+                    this.data = data;
+                    this.updateData(data);
+                },
+                updateData: function(newData) {
+                    this.refresh();
+                },
+                refresh: function() {}
+            };
+            __.extend(Brain(), o);
+            o.init();
+            return o;
+        }
+
+        /**
+         * @factory objects class
+         */
+        function ObjectsList() {
+            var o = {
+                ele: null,
+                listEle: null,
+                title:null,
+                data: null,
+                store: null,
+                items: [],
+                setStore: function(store) {
+                    this.store = store;
+                    store.bindedView = this;
+                    this.updateStore(store);
+                },
+                updateStore: function(newStore) {
+                    this.refresh(newStore);
+                },
+                refresh: function(store) {
+                    var rs = store.getRecords();
+                    var f = document.createDocumentFragment(),
+                        e, list, li;
+
+                    this.empty();
+                    for(var i = 0, ln = rs.length; i < ln; i++) {
+                        this.items.push(li = ObjectListItem().setData(rs[i].data));
+                        li.setRecord(rs[i]);
+                        f.appendChild(li.ele);
+                    }
+                    this.ele.appendChild(f);
+                    this.onRefresh();
+                },
+                empty: function() {
+                    this.items = [];
+                    this.ele.innerHTML = '';
+                },
+                onRefresh: function() {
+                    this.refreshSubscriptions();
+                },
+                refreshSubscriptions: function() {
+                    for(var i = 0, ln = this.items.length; i < ln; i += 1) {
+                        this.items[i].plug('oncheckselect', this.onCheckSelectItem, this);
+                        this.items[i].plug('onchangetotal', this.onChangeTotal, this);
+                    }
+                },
+                onCheckSelectItem: function(isChecked, data) {
+                    this.checkParent(isChecked, data);
+                    this.triggerEvent('oncheckselect', arguments);
+                },
+
+                checkParent: function(isChecked, data) {
+                    var masters = [], fs = data.fieldDetails, f;
+
+                    for(var i = 0; i < fs.length; i++) {
+                        if(__.isMasterDetail(f = fs[i])) masters.push(f.referenceTo.toLowerCase());
+                    }
+                    if(masters.length) this.notifyMaster.apply(this, [isChecked, data, masters]);
+                },
+                notifyMaster: function(isChecked, data, masters) {
+                    this.triggerEvent('objectlist.check.notifymaster', arguments);
+                },
+                onChangeTotal: function() {
+                    this.triggerEvent('onchangetotal', arguments);
+                },
+                init: function() {
+                    this.initEle();
+                    this.initEvent();
+                },
+                initEle: function() {
+                    this.ele = document.querySelector('.js-dh-objects');
+                },
+                initEvent: function() {
+                    var me = this;
+                },
+                onTitleClick:function() {
+                    console.log('clicked' + this.data);
+                },
+                filter: function(value) {
+                    var li;
+                    if(!value) return this.showAll();
+                    
+                    for(var i = 0; i < this.items.length; i++) {
+                        li = this.items[i];
+                        li.toggle(li.data.name.replace(value, '').length !== li.data.name.length);
+                    }
+                },
+                filterBySelected: function(flag) {
+                    for(var i = 0, ln = this.items.length; i < ln; i++) {
+                        li = this.items[i];
+                        li.toggle(li.isChecked === flag);
+                    }
+                },
+                showAll: function() {
+                    for(var i = 0, ln = this.items.length; i < ln; i++) {
+                        li = this.items[i];
+                        li.toggle(!0);
+                    }
+                }
+            };
+            __.extend(Brain(), o);
+            o.init();
+            return o;
+        }
+
+        /**
+         * @factore object list item
+         */
+        function ObjectListItem(config) {
+            config = config || {};
+            var o = {
+                ele: null,
+                titleEle: null,
+                listItem: null,
+                checkEle: null,
+                numEle: null,
+                fieldsEle: null,
+                data: null,
+                record: null,
+                isVisible: false,
+                isFieldVisible: false,
+                isChecked: false,
+                spinner: null,
+                template: [
+                    '<div class="dh-list-main">',
+                        '<div class="dh-list">',
+                            '<div class="dh-list-item"><input type="checkbox" class="js-dh-list-item__select dh-cus-input"/></div>',
+                            '<div class="dh-list-item dh-list-item__referenced"></div>',
+                            '<div class="dh-list-item dh-list-item__title js-dh-list-item__title"></div>',
+                            '<div class="dh-list-item"><input class="js-dh-list-item__num"/></div>',
+                        '</div>',
+                        '<div class="js-dh-list-item__list-fields"></div>',
+                        '<div class="js-dh-list-item__spinner dh-list-item__spinner"></div>',
+                    '</div>'
+                ].join(''),
+                init: function() {
+                    this.initEle();
+                    this.initEvent();
+                },
+                initEle: function() {
+                    this.ele = __.makeEle('div');
+                    this.ele.innerHTML = this.template;
+                    this.titleEle = this.ele.querySelector('.js-dh-list-item__title');
+                    this.checkEle = this.ele.querySelector('.js-dh-list-item__select');
+                    this.numEle = this.ele.querySelector('.js-dh-list-item__num');
+                    this.numEle.disabled = true;
+                    this.fieldsEle = this.ele.querySelector('.js-dh-list-item__list-fields');
+                    this.fieldsEle.style.display = 'none';
+                    this.spinner = this.ele.querySelector('.js-dh-list-item__spinner');
+                },
+                initEvent: function() {
+                    var me = this;
+                    this.checkEle.addEventListener('change', me.onChangeCheck.bind(me, this.checkEle));
+                    this.titleEle.addEventListener('click', this.onClickTitle.bind(me));
+                    this.numEle.addEventListener('change', this.onChangeNum.bind(me));
+                    this.numEle.addEventListener('keyup', this.onKeyupNum.bind(me));
+                },
+                toggleCheck: function(flag) {
+                    this.checkEle.checked = flag;
+                },
+                onKeyupNum: function() {
+                    this.validateInput(this.numEle.value);
+                },
+                onChangeNum: function() {
+                    this.triggerEvent('onchangetotal', [this.numEle.value, this.data]);
+                },
+                validateInput: function(v) {
+                    if(v.match(/\D+/)) this.numEle.value = v.substring(0, v.length - 1);
+                    if(Number(v) > 50000) {
+                        alert('no more than 50000, please reset.');
+                        this.numEle.value = '';
+                    }
+                },
+                onChangeCheck: function(ele, event) {
+                    this.isChecked = ele.checked;
+                    this.toggleHighlight(this.isChecked);
+                    this.toggleNumInput(this.isChecked);
+                    this.triggerEvent('oncheckselect', [this.isChecked, this.data]);
+                },
+                toggleNumInput: function(flag) {
+                    this.numEle.disabled = !flag;
+                },
+                onClickTitle: function() {
+                    if(!this.isFieldVisible) {
+                        this.requestSpinner();
+                    }
+                    this.toggleFields();
+                },
+                requestSpinner: function() {
+                    spinner.setDimension(20);
+                    spinner.setHasNumberGrower(false);
+                    spinner.show();
+                    setTimeout(spinner.hide.bind(spinner), 500);
+                    this.spinner.appendChild(spinner.ele);
+                },
+                toggleFields: function() {
+                    this.isFieldVisible = !this.isFieldVisible;
+                    this.fieldsEle.style.display = this.isFieldVisible ? 'block' : 'none';
+                },
+                setIsVisible: function(flag) {
+                    this.isVisible = flag;
+                    this.updateIsVisible(flag);
+                },
+                setData: function(data) {
+                    this.data = data;
+                    this.updateData(data);
+                    return this;
+                },
+                setRecord: function(record) {
+                    this.record = record;
+                    record.bindView(this);
+                },
+                updateData: function(newData) {
+                    this.refresh(newData);
+                },
+                toggleHighlight: function(flag) {
+                    return flag ? this.highlight() : this.unHighlight();
+                },
+                highlight: function() {
+                    __.addCls(this.ele,'dh-item--highlighted');
+                },
+                unHighlight: function() {
+                    __.removeCls(this.ele,'dh-item--highlighted');
+                },
+                fieldHandler: null,
+                refresh: function(data) {
+                    this.fieldHandler = this.fieldHandler || FieldsHandler();
+                    this.fieldHandler.setData(data.fieldDetails);
+                    this.titleEle.innerText = this.data ? this.data.name : '';
+                    this.fieldsEle.appendChild(this.fieldHandler.ele);
+                    this.checkEle.checked = data.isRequired;
+                    this.toggleNumInput(data.isRequired);
+                },
+                hide:function() {},
+                show: function() {},
+                toggle:function(flag) {
+                    this.ele.style.display = flag ? 'block' : 'none';
+                }
+            };
+            __.extend(Brain(), o);
+            o.init();
+            return o;
+        }
+
+        function FieldsHandler() {
+            var o = {
+                baseCls: 'dh-list-item__list-fields-handler',
+                ele: null,
+                items: [],
+                data: null,
+                init: function() {
+                    this.initEle();
+                    this.initEvent();
+                },
+                initEle: function() {
+                    this.ele = __.makeEle('div', 'dh-list-item__list-fields-handler');
+                },
+                initEvent: function() {},
+                setData: function(data) {
+                    this.data = data;
+                    this.updateData(data);
+                },
+                updateData: function(newData) {
+                    this.refresh(newData);
+                },
+                refresh: function(data) {
+                    var li;
+                    var f = __.makeEle('fragment');
+                    this.ele.innerHTML = '';
+
+                    for(var i = 0 ; i < data.length; i++) {
+                        li = FieldItem();
+                        li.setData(data[i]);
+                        f.appendChild(li.ele);
+                    }
+                    this.ele.appendChild(f);
+                }
+            };
+        
+            o.init();
+            return o;
+        }
+
+        function AjaxFilter() {
+            var o = {
+                baseCls: '',
+                ele: null,
+                inputEle: null,
+                searchItemsEle: null,
+                startTime: null,
+                items: [],
+                template: [
+                    '<div>',
+                    '<input class="js-dh-ajax-filter__input"/>',
+                    '</div>',
+                    '<div class="dh-ajax-filter-search-items js-dh-ajax-filter-search-items"></div>'
+                ].join(''),
+                data: null,
+                init: function() {
+                    this.initEle();
+                    this.initEvent();
+                },
+                initEle: function() {
+                    this.ele = __.makeEle('div', 'dh-ajax-filter');
+                    this.ele.innerHTML = this.template;
+                    this.inputEle = this.ele.querySelector('.js-dh-ajax-filter__input');
+                    this.searchItemsEle = this.ele.querySelector('.js-dh-ajax-filter-search-items');
+                },
+                initEvent: function() {
+                    var me = this;
+                    this.inputEle.addEventListener('keyup', me.onKeyupInput.bind(me, me.inputEle));
+                },
+                onKeyupInput: function(input) {
+                    var time = new Date().getTime();
+                    if(input.value.trim() === '') {
+                        this.clear();
+                    } else if(!this.startTime || time - this.startTime >= 200 ) {
+                        this.getSobjects(this.data, input.value);
+                    }
+                    this.startTime = time;
+                },
+                clear: function() {
+                    this.items = [];
+                    this.searchItemsEle.innerHTML = '';
+                },
+                setData: function(data) {
+                    this.data = data;
+                    this.updateData(data);
+                },
+                updateData: function(newData) {
+                    this.refresh();
+                },
+                refresh: function() {},
+                getSobjects: function(objName, match) {
+                    var me = this;
+                    mgr.invokeAction(
+                        actionRef.query,
+                        objName, match,
+                        this.handleSobject.bind(me)
+                    );
+                },
+                createItems: function() {
+                    var me = this;
+                    var o = {
+                        baseCls: '',
+                        ele: null,
+                        template: [].join(''),
+                        data: null,
+                        init: function() {
+                            this.initEle();
+                            this.initEvent();
+                        },
+                        initEle: function() {
+                            this.ele = __.makeEle('div');
+                        },
+                        initEvent: function() {},
+                        setData: function(data) {
+                            this.data = data;
+                            this.updateData(data);
+                        },
+                        updateData: function(newData) {
+                            this.refresh();
+                        },
+                        refresh: function() {
+                            this.ele.innerHTML = this.data;
+                        }
+                    };
+                
+                    o.init();
+                    return o;
+                },
+                handleSobject: function(res) {
+                    var li;
+                    var f = __.makeEle('fragment');
+                    this.searchItemsEle.innerHTML = '';
+                    this.items = [];
+                    for(var i = 0; i < res.length; i++) {
+                        li = this.createItems();
+                        li.setData(res[i].Name);
+                        this.items.push(li);
+                        f.appendChild(li.ele);
+                    }
+                    this.searchItemsEle.appendChild(f);
+                }
+            };
+        
+            o.init();
+            return o;
+        }
+
+        function FieldItem() {
+            var o = {
+                baseCls: '',
+                ele: null,
+                inputEle: null,
+                template: [
+                    '<div class="dh-field-item">',
+                        '<div class="dh-field-item__name">{name}</div>',
+                        '<div class="js-dh-field-item__input"></div>',
+                        '<select><option>random</option><option>even distributiion</option></select>',
+                    '</div>'
+                ].join(''),
+                data: null,
+                init: function() {
+                    this.initEle();
+                    this.initEvent();
+                },
+                initEle: function() {
+                    this.ele = __.makeEle('div');
+                },
+                initEvent: function() {},
+                setData: function(data) {
+                    this.data = data;
+                    this.updateData(data);
+                },
+                updateData: function(newData) {
+                    this.refresh(newData);
+                },
+                refresh: function(data) {
+                    var t;
+                    var name = data.isNillable ? data.name : '*' + data.name;
+                    if(__.isMasterDetail(data)) {
+                        t = this.template.replace('{name}', name);
+                        this.ele.innerHTML = t;
+                        this.inputEle = this.ele.querySelector('.js-dh-field-item__input');
+                        this.input = AjaxFilter();
+                        this.input.setData(data.referenceTo);
+                        this.inputEle.appendChild(this.input.ele);
+                    } else {
+                        this.ele.innerHTML = '<div class="dh-field-item">' + name + '</div>';
+                    }
+                }
+            };
+        
+            o.init();
+            return o;
+        }
+
+        /**
+         * everything starts here
+         */
+        enterpriseEngage();
+    </script>
+    <!-- <script src="https://bb.githack.com/yinghanwang/data-manager/raw/a4b5171a90b4dd5318f2c2f4e3d0b0a907495e72/app/js/build.min.js"></script> -->
+</apex:page>
